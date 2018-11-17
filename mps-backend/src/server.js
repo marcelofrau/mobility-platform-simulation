@@ -2,7 +2,11 @@ const express = require('express');
 const app = express();
 const { MongoClient } = require('mongodb');
 
+
+const { Simulation } = require('./simulation.js');
+
 const resources = {};
+
 
 console.log('Starting backend.')
 startup(resources);
@@ -23,9 +27,20 @@ app.get('/', (req, res) => {
     });
 });
 
+
+
 app.listen(8080, () => console.log('Listening on 8080 port'));
 
+startSimulation();
+
 console.log('Backend started.')
+
+function startSimulation() {
+    const simulation =  new Simulation(resources);
+    resources.simulation = simulation;
+
+    simulation.start();
+}
 
 function send(res, data, status = 200) {
     res.setHeader('Content-Type', 'application/json');

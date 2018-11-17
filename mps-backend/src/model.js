@@ -43,3 +43,8 @@ class RectArea {
         return `RectArea(start: ${this.startPoint}, end: ${this.endPoint})`
     }
 }
+
+exports.Coordinate = Coordinate
+exports.Car = Car
+exports.Customer = Customer
+exports.RectArea = RectArea
