@@ -1,35 +1,28 @@
-const express = require('express');
-const app = express();
+const server = require('http').createServer();
+const io = require('socket.io')();
+
 const { MongoClient } = require('mongodb');
-
-
 const { Simulation } = require('./simulation.js');
 
 const resources = {};
-
+const port = 8080;
 
 console.log('Starting backend.')
 startup(resources);
 
-app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "http://localhost:3000");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-
-    next();
-});
-
-app.get('/', (req, res) => {
-    send(res, {
-        message: 'Hello World',
-        mongodb: {
-            connected: isMongoConnected()
-        }
+io.on('connection', (client) => {
+    client.on('subscribeToTimer', (interval) => {
+        console.log('client is subscribing to timer with interval ', interval);
+        
+        setInterval(() => {
+            client.emit('timer', new Date());
+        }, interval);
     });
 });
 
 
-
-app.listen(8080, () => console.log('Listening on 8080 port'));
+io.listen(port);
+console.log(`Listening on port ${port}`)
 
 startSimulation();
 

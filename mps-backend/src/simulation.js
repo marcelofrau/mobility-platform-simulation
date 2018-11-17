@@ -4,16 +4,17 @@ class Simulation {
 
     constructor(resources) {
         this.resources = resources;
+
+        // retrieve this data from the database.
         this.carsOnMap = 10;
         this.customersOnMap = 10;
         this.currentArea = new RectArea(new Coordinate(0, 0), new Coordinate(100, 100));
         this.pricePerKM = 5.0;
-
     }
 
     start() {
         console.log('Starting simulation');
-        console.log(new Coordinate(10, 10));
+        // console.log(new Coordinate(10, 10));
     }
 
     pause() {

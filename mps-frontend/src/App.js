@@ -1,28 +1,33 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
+
 import './App.css';
 
+import SocketConnection from './socket/SocketConnection';
+
 class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
-    );
-  }
+
+    constructor() {
+        super();
+
+        this.clickFun = this.clickFun.bind(this);
+    }
+
+    clickFun() {
+        new SocketConnection().subscribeToTimer(timestamp => {
+            console.log(`timestamp: ${timestamp}`);
+        });
+    }
+
+    render() {
+        return (
+            <div className="App">
+                Foo bar <br />
+                <button onClick={this.clickFun}>
+                    Click Me!
+                </button>
+            </div>
+        );
+    }
 }
 
 export default App;
