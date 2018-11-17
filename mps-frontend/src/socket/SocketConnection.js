@@ -19,6 +19,27 @@ class SocketConnection {
         this.socket.emit('needConfig')
     }
 
+    setAdminConfig(adminConfiguration) {
+        console.log(`setAdminConfig: ${adminConfiguration.speed}`)
+        this.socket.emit('updateConfig', adminConfiguration)
+    }
+
+    stop() {
+        this.socket.emit('stop');
+    }
+
+    start() {
+        this.socket.emit('start');
+    }
+
+    pause() {
+        this.socket.emit('pause');
+    }
+
+    resume() {
+        this.socket.emit('resume');
+    }
+
     setStepCallback(stepCallback) {
         this.stepCallback = stepCallback;
     }

@@ -1,7 +1,4 @@
 import React, { Component } from 'react';
-
-import { Car, Coordinate, Customer, RectArea } from './model.js';
-
 import './App.css';
 
 import SocketConnection from './socket/SocketConnection';
@@ -14,25 +11,47 @@ class App extends Component {
         this.state = {
             activeCars: 0,
             activeCustomers: 0,
-            currentArea: undefined,
             pricePerKM: 0,
-            speed: 0
+            speed: 0,
+            simulationState: null
         }
-
-        this.socketConnection = new SocketConnection()
-        // .subscribeToTimer(timestamp => {
-        //     console.log(`timestamp: ${timestamp}`);
-        // });
-
+        
         this.onChange = this.onChange.bind(this);
+        this.step = this.step.bind(this);
+        this.stop = this.stop.bind(this);
+        this.start = this.start.bind(this);
+        this.resume = this.resume.bind(this);
+        this.pause = this.pause.bind(this);
+        this.plotCars = this.plotCars.bind(this);
+        this.plotCustomers = this.plotCustomers.bind(this);
+        this.showInfo = this.showInfo.bind(this);
         this.updateAdminConfigs = this.updateAdminConfigs.bind(this);
 
+        this.socketConnection = new SocketConnection()
         this.socketConnection.getAdminConfig(this.updateAdminConfigs);
         this.socketConnection.setStepCallback(this.step);
     }
 
     step(simulationState) {
-        console.log(simulationState);
+        this.setState({
+            simulationState: simulationState
+        })
+    }
+
+    stop() {
+        this.socketConnection.stop();
+    }
+
+    start() {
+        this.socketConnection.start();
+    }
+
+    pause() {
+        this.socketConnection.pause();
+    }
+
+    resume() {
+        this.socketConnection.resume();
     }
 
     updateAdminConfigs(adminConfiguration) {
@@ -48,17 +67,124 @@ class App extends Component {
     
 
     onChange(event) {
-        this.setState({
-            [event.target.name]: event.target.value
+        const state = this.state;
+        state[event.target.name] = event.target.value;
+
+        // this will cause the setState to be called with new values
+        // so the changes will go to the backend and backend
+        // will return the new values on the updateAdminConfigs method.
+        this.socketConnection.setAdminConfig({
+            activeCars: this.state.activeCars,
+            activeCustomers: this.state.activeCustomers,
+            currentArea: this.state.currentArea,
+            pricePerKM: this.state.pricePerKM,
+            speed: this.state.speed
         });
     }
 
+    getMapStyle() {
+        const simState = this.state.simulationState;
+
+        if (simState) {
+            const area = simState.currentArea;
+            
+            const minX = Math.min(area.startPoint.x, area.endPoint.x);
+            const minY = Math.min(area.startPoint.y, area.endPoint.y);
+    
+            const maxX = Math.max(area.startPoint.x, area.endPoint.x);
+            const maxY = Math.max(area.startPoint.y, area.endPoint.y);
+
+            const width = (maxX - minX) + 50;
+            const height = (maxY - minY) + 50;
+
+            return {
+                width: `${width}px`,
+                height: `${height}px`,
+            }
+        }
+
+        return {};
+    }
+
+    plotCars() {
+        if (!this.state.simulationState) {
+            return
+        }
+
+        return this.state.simulationState.availableCars.map(car => {
+            const location = car.location;
+
+            return (
+                <div key={car.carPlate} className="car" style={{
+                    position: "absolute",
+                    top: `${location.y}px`,
+                    left: `${location.x}px`,
+                }}>
+                    <i className="fas fa-car-side fa-2x"></i>
+                    <div>
+                        {car.carPlate}
+                    </div>
+                </div>
+            );
+        }) 
+    }
+
+    plotCustomers() {
+        if (!this.state.simulationState) {
+            return
+        }
+
+        return this.state.simulationState.availableCustomers.map(customer => {
+            const location = customer.location;
+            const destination = customer.destination;
+            // const customerColor = getRandomColor();
+
+            return (
+                <div key={customer.name}>
+                    <div className="customer" style={{
+                        position: "absolute",
+                        top: `${location.y}px`,
+                        left: `${location.x}px`,
+                    }}>
+                        <div>{customer.name}</div>
+                        <i className="fas fa-male fa-2x"></i>
+                    </div>
+                    <div className="customer" style={{
+                        position: "absolute",
+                        top: `${destination.y}px`,
+                        left: `${destination.x}px`,
+                    }}>
+                        <div>{customer.name}</div>
+                        <i className="far fa-dot-circle"></i>
+                    </div>
+                </div>
+            );
+        }) 
+
+        
+    }
+
+    showInfo() {
+        if (!this.state.simulationState) {
+            return
+        }
+        
+        return <div className="info">
+            <div className="lastUpdate">Updated: {this.state.simulationState.lastUpdate}</div>
+        </div>
+    }
+
     render() {
+        const mapStyle = this.getMapStyle();
+        
         return (
             
             <div className="App">
                 <form>
-                    <div className="Map">
+                    <div className="Map" style={mapStyle}>
+                        {this.showInfo()}
+                        {this.plotCars()}
+                        {this.plotCustomers()}
                     </div>
                     <div className="Config">
                         <div className="form">
@@ -82,10 +208,10 @@ class App extends Component {
 
                         {/* TODO: allow change the area here */}
                         <div className="buttons">
-                            <button>Stop</button>
-                            <button>Start</button>
-                            <button>Pause</button>
-                            <button>Resume</button>
+                            <button onClick={ _ => this.stop() }>stop</button>
+                            <button onClick={ _ => this.start() }>start</button>
+                            <button onClick={ _ => this.pause() }>pause</button>
+                            <button onClick={ _ => this.resume() }>resume</button>
                         </div>
                     </div>
                 </form>
@@ -93,5 +219,7 @@ class App extends Component {
         );
     }
 }
+  
+  
 
 export default App;
