@@ -137,7 +137,6 @@ class App extends Component {
         return this.state.simulationState.customers.map(customer => {
             const location = customer.location;
             const destination = customer.destination;
-            // const customerColor = getRandomColor();
 
             return (
                 <div key={customer.name}>
@@ -164,13 +163,20 @@ class App extends Component {
         
     }
 
+    lastRides() {
+        return this.state.simulationState.lastTrips.map(trip => {
+            return <div>{trip}</div>
+        })
+    }
+
     showInfo() {
         if (!this.state.simulationState) {
             return
         }
         
         return <div className="info">
-            <div className="lastUpdate">Updated: {this.state.simulationState.lastUpdate}</div>
+            <div className="lastUpdate">Updated on: {this.state.simulationState.lastUpdate}</div>
+            <div className="lastRides">Last rides: {this.lastRides()}</div>
         </div>
     }
 

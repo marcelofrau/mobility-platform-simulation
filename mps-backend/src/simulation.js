@@ -7,6 +7,7 @@ class SimulationState {
         this.currentArea = currentArea;
         this.startedAt = new Date();
         this.lastUpdate = new Date();
+        this.lastTrips = [];
     }
 
     toString() {
@@ -204,46 +205,55 @@ class Simulation {
             (y > minY && y < maxY));
     }
 
-    stepCar(car) {
-        const amount = 20;
-        
-        const customer = car.customer;
-
-        const destination = car.fetchingCustomer ? customer.location : customer.destination;
-
+    calculateNewCoord(destination, location, amount) {
+        // there is a need to calculate a better way to go to target here
+        // we can make a right-sided triangle here, so
+        // using a calculation on a intersection of a point on the
+        // hypothenuse would make we obtain the correct x, y.
         const destinationX = destination.x;
         const destinationY = destination.y;
 
-        const locationX = car.location.x;
-        const locationY = car.location.y;
+        const locationX = location.x;
+        const locationY = location.y;
+
+
+        const newLocation = new Coordinate(locationX, locationY);
+        if (destinationX >= locationX) {
+            newLocation.x += amount;
+        } else {
+            newLocation.x -= amount;
+        }
+        if (destinationY >= locationY) {
+            newLocation.y += amount;
+        } else {
+            newLocation.y -= amount;
+        }
 
         
+
+        return newLocation;
+    }
+
+    stepCar(car) {
+        const amount = 20;
+        const customer = car.customer;
+        const destination = car.fetchingCustomer ? customer.location : customer.destination;
+
         if (this.isInBounds(car.location, destination, amount)) {
             if (car.fetchingCustomer) {
                 car.fetchingCustomer = false;
             } else {
                 car.location = destination;
                 car.customer = null;
-
                 customer.location = destination;
             }
             
             return;
         }
 
-        const newLocation = new Coordinate(locationX, locationY);
-        if (destinationX > locationX) {
-            newLocation.x += amount;
-        } else {
-            newLocation.x -= amount;
-        }
-        if (destinationY > locationY) {
-            newLocation.y += amount;
-        } else {
-            newLocation.y -= amount;
-        }
-
-        car.location = newLocation;
+        car.location = this.calculateNewCoord(destination, car.location, amount);
+        // each amount is being considered as a km traveled, this can be changed
+        customer.kmTraveled++;
 
         if (!car.fetchingCustomer) {
             customer.location = car.location;
@@ -261,8 +271,8 @@ class Simulation {
         
         //const pricePerKM = this.pricePerKM;
 
-        const customers = this.state.customers;
-        const cars = this.state.cars;
+        const customers = state.customers;
+        const cars = state.cars;
         const availableCustomers = customers.filter(customer => {return this.findCarByCustomer(customer) == null});
         const availableCars = cars.filter(car => {return car.customer == null});
         
@@ -274,8 +284,15 @@ class Simulation {
             this.stepCar(car);
         })
 
-        for (let i = 0; i < customers; i++) {
-            //const customer = 
+        for (let i = 0; i < customers.length; i++) {
+            const customer = customers[i];
+            if (customer.location == customer.destination) {
+                state.customers.splice(i, 1);
+
+                const price = customer.kmTraveled * this.pricePerKM;
+
+                state.lastTrips.push(`Trip for '${customer.name}' ended (Cost: \$${price})`)
+            }
         }
         
         

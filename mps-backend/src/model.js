@@ -10,11 +10,12 @@ class Coordinate {
 }
 
 class Customer {
-    constructor(location, destination, name, transportedBy) {
+    constructor(location, destination, name, transportedBy = null, kmTraveled = 0) {
         this.location = location
         this.destination = destination
         this.name = name
         this.transportedBy = transportedBy
+        this.kmTraveled = kmTraveled
     }
 
     toString() {
