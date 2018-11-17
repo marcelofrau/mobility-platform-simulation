@@ -111,7 +111,7 @@ class App extends Component {
             return
         }
 
-        return this.state.simulationState.availableCars.map(car => {
+        return this.state.simulationState.cars.map(car => {
             const location = car.location;
 
             return (
@@ -134,7 +134,7 @@ class App extends Component {
             return
         }
 
-        return this.state.simulationState.availableCustomers.map(customer => {
+        return this.state.simulationState.customers.map(customer => {
             const location = customer.location;
             const destination = customer.destination;
             // const customerColor = getRandomColor();

@@ -1,16 +1,16 @@
 const { Car, Coordinate, Customer, RectArea } = require('./model.js');
 
 class SimulationState {
-    constructor(availableCars, availableCustomers, currentArea) {
-        this.availableCars = availableCars;
-        this.availableCustomers = availableCustomers;
+    constructor(cars, customers, currentArea) {
+        this.cars = cars;
+        this.customers = customers;
         this.currentArea = currentArea;
         this.startedAt = new Date();
         this.lastUpdate = new Date();
     }
 
     toString() {
-        return `SimulationState(lastUpdate: ${this.lastUpdate}, availableCars: ${this.availableCars}, availableCustomers: ${this.availableCustomers}, startedAt: ${this.startedAt})`
+        return `SimulationState(lastUpdate: ${this.lastUpdate}, cars: ${this.cars}, customers: ${this.customers}, startedAt: ${this.startedAt})`
     }
 }
 
@@ -103,22 +103,22 @@ class Simulation {
     updateCars() {
         const state = this.state;
         const carsOnMap = this.carsOnMap;
-        if (carsOnMap != state.availableCars.length) {
-            if (carsOnMap > state.availableCars.length) {
-                const diff =  carsOnMap - state.availableCars.length;
+        if (carsOnMap != state.cars.length) {
+            if (carsOnMap > state.cars.length) {
+                const diff =  carsOnMap - state.cars.length;
                 for (let i = 0; i < diff; i++) {
-                    state.availableCars.push(this.randomCar());
+                    state.cars.push(this.randomCar());
                 }
             } else {
-                const diff = state.availableCars.length - carsOnMap;
+                const diff = state.cars.length - carsOnMap;
 
                 let count = 0;
-                for (let i = 0; i < state.availableCars.length; i++) {
-                    const car = state.availableCars[i];
+                for (let i = 0; i < state.cars.length; i++) {
+                    const car = state.cars[i];
 
                     if (car.customer == null) {
                         // removing unused car
-                        state.availableCars.splice(i, 1);
+                        state.cars.splice(i, 1);
                         count++;
                     }
                     if (count == diff) {
@@ -132,22 +132,22 @@ class Simulation {
     updateCustomers() {
         const state = this.state;
         const customersOnMap = this.customersOnMap;
-        if (customersOnMap != state.availableCustomers.length) {
-            if (customersOnMap > state.availableCustomers.length) {
-                const diff =  customersOnMap - state.availableCustomers.length;
+        if (customersOnMap != state.customers.length) {
+            if (customersOnMap > state.customers.length) {
+                const diff =  customersOnMap - state.customers.length;
                 for (let i = 0; i < diff; i++) {
-                    state.availableCustomers.push(this.randomCustomer());
+                    state.customers.push(this.randomCustomer());
                 }
             } else {
-                const diff = state.availableCustomers.length - customersOnMap;
+                const diff = state.customers.length - customersOnMap;
                 
                 let count = 0;
-                for (let i = 0; i < state.availableCustomers.length; i++) {
-                    const customer = state.availableCustomers[i];
+                for (let i = 0; i < state.customers.length; i++) {
+                    const customer = state.customers[i];
 
                     if (customer.transportedBy == null) {
                         // removing unused car
-                        state.availableCustomers.splice(i, 1);
+                        state.customers.splice(i, 1);
                         count++;
                     }
                     if (count == diff) {
@@ -155,6 +155,98 @@ class Simulation {
                     }
                 }
             }
+        }
+    }
+
+    findCarByCustomer(customer) {
+        const cars = this.state.cars;
+
+        const found = cars.filter(car => {
+            return (car.customer != null && car.customer.name == customer.name);
+        })
+
+        if (found.length == 0) {
+            return null;
+        }
+
+        return found[0];
+    }
+
+    associateCarToWaitingCustomer(availableCustomers, availableCars) {
+        if (availableCars.length > 0 && availableCustomers.length > 0) {
+            availableCars.forEach(car => {
+                if (availableCustomers.length > 0) {
+                    const customer = availableCustomers.pop();
+                    car.customer = customer;
+                    car.fetchingCustomer = true;
+                }
+            });
+        }
+    }
+
+    isInBounds(location, destination, tolerance) {
+        const x1 = destination.x - tolerance;
+        const x2 = destination.x + tolerance;
+
+        const y1 = destination.y - tolerance;
+        const y2 = destination.y + tolerance;
+
+        const {x, y} = location;
+
+        const minX = Math.min(x1, x2);
+        const minY = Math.min(y1, y2);
+
+        const maxX = Math.max(x1, x2);
+        const maxY = Math.max(y1, y2);
+
+
+        return ((x > minX && x < maxX) && 
+            (y > minY && y < maxY));
+    }
+
+    stepCar(car) {
+        const amount = 20;
+        
+        const customer = car.customer;
+
+        const destination = car.fetchingCustomer ? customer.location : customer.destination;
+
+        const destinationX = destination.x;
+        const destinationY = destination.y;
+
+        const locationX = car.location.x;
+        const locationY = car.location.y;
+
+        
+        if (this.isInBounds(car.location, destination, amount)) {
+            if (car.fetchingCustomer) {
+                car.fetchingCustomer = false;
+            } else {
+                car.location = destination;
+                car.customer = null;
+
+                customer.location = destination;
+            }
+            
+            return;
+        }
+
+        const newLocation = new Coordinate(locationX, locationY);
+        if (destinationX > locationX) {
+            newLocation.x += amount;
+        } else {
+            newLocation.x -= amount;
+        }
+        if (destinationY > locationY) {
+            newLocation.y += amount;
+        } else {
+            newLocation.y -= amount;
+        }
+
+        car.location = newLocation;
+
+        if (!car.fetchingCustomer) {
+            customer.location = car.location;
         }
     }
 
@@ -167,14 +259,26 @@ class Simulation {
         this.updateCars();
         this.updateCustomers();
         
-        const pricePerKM = this.pricePerKM;
+        //const pricePerKM = this.pricePerKM;
 
-
-        //console.log(`step: ${state.lastUpdate}, speed: ${this.speed}`)
-        console.log(`step: ${state.lastUpdate}, cars: ${this.carsOnMap}, carsState: ${state.availableCars.length}`)
-
+        const customers = this.state.customers;
+        const cars = this.state.cars;
+        const availableCustomers = customers.filter(customer => {return this.findCarByCustomer(customer) == null});
+        const availableCars = cars.filter(car => {return car.customer == null});
         
+        this.associateCarToWaitingCustomer(availableCustomers, availableCars);
 
+        const occupiedCars = cars.filter(car => {return car.customer != null});
+
+        occupiedCars.forEach(car => {
+            this.stepCar(car);
+        })
+
+        for (let i = 0; i < customers; i++) {
+            //const customer = 
+        }
+        
+        
         state.lastUpdate = new Date();
     }
 

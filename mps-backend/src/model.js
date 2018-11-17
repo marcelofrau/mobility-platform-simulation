@@ -23,10 +23,11 @@ class Customer {
 }
 
 class Car {
-    constructor(location, customer, carPlate) {
+    constructor(location, customer, carPlate, fetchingCustomer = false) {
         this.location = location
         this.customer = customer
         this.carPlate = carPlate
+        this.fetchingCustomer = fetchingCustomer
     }
 
     toString() {
