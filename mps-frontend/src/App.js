@@ -26,10 +26,13 @@ class App extends Component {
 
         this.onChange = this.onChange.bind(this);
         this.updateAdminConfigs = this.updateAdminConfigs.bind(this);
+
+        this.socketConnection.getAdminConfig(this.updateAdminConfigs);
+        this.socketConnection.setStepCallback(this.step);
     }
 
-    componentWillMount() {
-        this.socketConnection.getAdminConfig(this.updateAdminConfigs);
+    step(simulationState) {
+        console.log(simulationState);
     }
 
     updateAdminConfigs(adminConfiguration) {
@@ -58,7 +61,7 @@ class App extends Component {
                     <div className="Map">
                     </div>
                     <div className="Config">
-                        <div class="form">
+                        <div className="form">
                             <div>
                                 <label htmlFor="activeCars">Active Cars</label>
                                 <input type="number" id="activeCars" name="activeCars" value={this.state.activeCars} onChange={this.onChange}/>
@@ -78,7 +81,7 @@ class App extends Component {
                         </div>
 
                         {/* TODO: allow change the area here */}
-                        <div class="buttons">
+                        <div className="buttons">
                             <button>Stop</button>
                             <button>Start</button>
                             <button>Pause</button>

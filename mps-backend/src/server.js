@@ -15,9 +15,14 @@ resources.simulation = simulation;
 
 simulation.start();
 
+simulation.setStepListener(() => {
+    io.emit('step', simulation.state);
+})
+
 io.on('connection', (socket) => {
 
     const simulation = resources.simulation;
+
     socket.on('needConfig', () => {
         
         const adminConfiguration = {
@@ -25,18 +30,21 @@ io.on('connection', (socket) => {
             activeCustomers: simulation.customersOnMap,
             currentArea: simulation.currentArea,
             pricePerKM: simulation.pricePerKM,
-            speed: speed
+            speed: simulation.speed,
+            isRunning: simulation.isRunning(),
+            isStopped: simulation.isStopped()
         }
         socket.emit('configChanged', adminConfiguration);
     });
 
     socket.on('updateConfig', (adminConfiguration) => {
-        
-        simulation.carsOnMap = adminConfiguration.activeCars
-        simulation.customersOnMap = adminConfiguration.activeCustomers
-        simulation.pricePerKM = adminConfiguration.pricePerKM
-        //simulation.currentArea = adminConfiguration.currentArea
-        simulation.speed = adminConfiguration.speed
+        simulation.updateConfig({
+            carsOnMap: adminConfiguration.activeCars,
+            customersOnMap: adminConfiguration.activeCustomers,
+            pricePerKM: adminConfiguration.pricePerKM,
+            //currentArea: adminConfiguration.currentArea,
+            speed: adminConfiguration.speed
+        });
         
         // this will broadcast to all connections that the configurations was changed
         io.emit('configChanged', adminConfiguration);
@@ -58,14 +66,6 @@ io.on('connection', (socket) => {
         simulation.stop();
     })
     
-
-    socket.on('subscribeToTimer', (interval) => {
-        console.log('client is subscribing to timer with interval ', interval);
-        
-        setInterval(() => {
-            socket.emit('timer', new Date());
-        }, interval);
-    });
 });
 
 
