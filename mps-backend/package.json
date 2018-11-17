@@ -2,11 +2,11 @@
   "name": "mps-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "src/server.js",
   "author": "Marcelo Frau",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "nodemon src/server.js"
   },
   "dependencies": {
     "express": "4.16.4",
