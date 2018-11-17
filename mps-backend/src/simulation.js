@@ -9,7 +9,8 @@ class Simulation {
         this.carsOnMap = 10;
         this.customersOnMap = 10;
         this.currentArea = new RectArea(new Coordinate(0, 0), new Coordinate(100, 100));
-        this.pricePerKM = 5.0;
+        this.pricePerKM = 5;
+        this.speed = 1;
     }
 
     start() {

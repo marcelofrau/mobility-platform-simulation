@@ -10,30 +10,71 @@ const port = 8080;
 console.log('Starting backend.')
 startup(resources);
 
-io.on('connection', (client) => {
-    client.on('subscribeToTimer', (interval) => {
+const simulation =  new Simulation(resources);
+resources.simulation = simulation;
+
+simulation.start();
+
+io.on('connection', (socket) => {
+
+    const simulation = resources.simulation;
+    socket.on('needConfig', () => {
+        
+        const adminConfiguration = {
+            activeCars: simulation.carsOnMap,
+            activeCustomers: simulation.customersOnMap,
+            currentArea: simulation.currentArea,
+            pricePerKM: simulation.pricePerKM,
+            speed: speed
+        }
+        socket.emit('configChanged', adminConfiguration);
+    });
+
+    socket.on('updateConfig', (adminConfiguration) => {
+        
+        simulation.carsOnMap = adminConfiguration.activeCars
+        simulation.customersOnMap = adminConfiguration.activeCustomers
+        simulation.pricePerKM = adminConfiguration.pricePerKM
+        //simulation.currentArea = adminConfiguration.currentArea
+        simulation.speed = adminConfiguration.speed
+        
+        // this will broadcast to all connections that the configurations was changed
+        io.emit('configChanged', adminConfiguration);
+    })
+
+    socket.on('start', () => {
+        simulation.start();
+    });
+
+    socket.on('pause', () => {
+        simulation.pause();
+    })
+
+    socket.on('resume', () => {
+        simulation.resume();
+    })
+
+    socket.on('stop', () => {
+        simulation.stop();
+    })
+    
+
+    socket.on('subscribeToTimer', (interval) => {
         console.log('client is subscribing to timer with interval ', interval);
         
         setInterval(() => {
-            client.emit('timer', new Date());
+            socket.emit('timer', new Date());
         }, interval);
     });
 });
 
 
+
 io.listen(port);
 console.log(`Listening on port ${port}`)
 
-startSimulation();
-
 console.log('Backend started.')
 
-function startSimulation() {
-    const simulation =  new Simulation(resources);
-    resources.simulation = simulation;
-
-    simulation.start();
-}
 
 function send(res, data, status = 200) {
     res.setHeader('Content-Type', 'application/json');

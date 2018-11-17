@@ -44,7 +44,4 @@ class RectArea {
     }
 }
 
-exports.Coordinate = Coordinate
-exports.Car = Car
-exports.Customer = Customer
-exports.RectArea = RectArea
+export { Coordinate, RectArea, Car, Customer}
