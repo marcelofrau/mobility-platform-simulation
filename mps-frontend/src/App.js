@@ -164,9 +164,15 @@ class App extends Component {
     }
 
     lastRides() {
-        return this.state.simulationState.lastTrips.map(trip => {
-            return <div>{trip}</div>
-        })
+        const trips = this.state.simulationState.lastTrips;
+        
+        const htmlTrips = [];
+
+        for (let i = trips.length - 5; i < trips.length; i++) {
+            htmlTrips.push((<div>{trips[i]}</div>))
+        }
+
+        return htmlTrips;
     }
 
     showInfo() {
@@ -176,7 +182,7 @@ class App extends Component {
         
         return <div className="info">
             <div className="lastUpdate">Updated on: {this.state.simulationState.lastUpdate}</div>
-            <div className="lastRides">Last rides: {this.lastRides()}</div>
+            <div className="lastRides">Last 5 trips summary: {this.lastRides()}</div>
         </div>
     }
 

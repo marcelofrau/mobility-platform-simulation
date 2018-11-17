@@ -10,6 +10,8 @@ npm start
 
 ## How to run backend
 
+**Note**: To run backend you must have a mongodb initialized on localhost and default port.
+
 ```shell
 cd mps-backend
 npm install

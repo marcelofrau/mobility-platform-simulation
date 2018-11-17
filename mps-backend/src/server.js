@@ -1,4 +1,3 @@
-const server = require('http').createServer();
 const io = require('socket.io')();
 
 const { MongoClient } = require('mongodb');
