@@ -220,10 +220,10 @@ class App extends Component {
 
                         {/* TODO: allow change the area here */}
                         <div className="buttons">
-                            <button onClick={ _ => this.stop() }>stop</button>
-                            <button onClick={ _ => this.start() }>start</button>
-                            <button onClick={ _ => this.pause() }>pause</button>
-                            <button onClick={ _ => this.resume() }>resume</button>
+                            <input type="button" onClick={ e => { e.preventDefault = true; this.stop(); } } value="stop"/>
+                            <input type="button" onClick={ e => { e.preventDefault = true; this.start(); } } value="start"/>
+                            <input type="button" onClick={ e => { e.preventDefault = true; this.pause(); } } value="pause"/>
+                            <input type="button" onClick={ e => { e.preventDefault = true; this.resume(); } } value="resume"/>
                         </div>
                     </div>
                 </form>

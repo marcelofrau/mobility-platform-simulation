@@ -2,11 +2,14 @@ const { Car, Coordinate, Customer, RectArea } = require('./model.js');
 
 class SimulationState {
     constructor(cars, customers, currentArea) {
+        this._id = 1;
         this.cars = cars;
         this.customers = customers;
         this.currentArea = currentArea;
         this.startedAt = new Date();
         this.lastUpdate = new Date();
+        this.carPlateCounter = 0;
+        this.customerCounter = 0;
         this.lastTrips = [];
     }
 
@@ -24,7 +27,8 @@ class Simulation {
         this.carPlateCounter = 0;
         this.customerCounter = 0;
 
-        // retrieve this data from the database.
+        this.db = resources.mongodb.client.db('application');
+
         this.updateConfig({
             carsOnMap: 2,
             customersOnMap: 1,
@@ -32,8 +36,43 @@ class Simulation {
             pricePerKM: 5,
             speed: 1
         });
+
+
+        
+        this.loadState() 
+        
     }
 
+    loadState() {
+        const db = this.resources.mongodb.client.db('application');
+        db.collection('simulationState').find().toArray((err, results) => {
+            if (err) {
+                throw err;
+            }
+
+            if (results.length > 0) {
+                const state = results[0];
+
+                // TODO continue loading the state into the current application.
+                // I ran out of time here...
+
+                // this.state = new SimulationState(cars, customers, this.currentArea);
+
+                // this.cars = cars;
+                // this.customers = customers;
+                // this.currentArea = currentArea;
+                // this.startedAt = new Date();
+                // this.lastUpdate = new Date();
+                // this.lastTrips = [];
+
+            }
+
+            console.log(`data loaded: ${results}`)
+        });
+        
+    }
+
+    
     setStepListener(stepCallback) {
         this.stepCallback = stepCallback;
     }
@@ -297,6 +336,17 @@ class Simulation {
         
         
         state.lastUpdate = new Date();
+
+        this.saveStateOnDb();
+    }
+
+    saveStateOnDb() {
+        const db = this.resources.mongodb.client.db('application');
+        db.collection('simulationState').save(this.state, (err, result) => {
+            if (err) {
+                throw err;
+            }
+        });
     }
 
     reset() {

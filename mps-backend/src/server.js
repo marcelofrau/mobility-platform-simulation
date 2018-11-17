@@ -9,14 +9,6 @@ const port = 8080;
 console.log('Starting backend.')
 startup(resources);
 
-const simulation =  new Simulation(resources);
-resources.simulation = simulation;
-
-simulation.start();
-
-simulation.setStepListener(() => {
-    io.emit('step', simulation.state);
-})
 
 io.on('connection', (socket) => {
 
@@ -75,12 +67,6 @@ console.log(`Listening on port ${port}`)
 console.log('Backend started.')
 
 
-function send(res, data, status = 200) {
-    res.setHeader('Content-Type', 'application/json');
-    res.status(status)
-        .send(JSON.stringify(data));
-}    
-
 function startup(resources) {
     console.log('Initializing mongodb connection');
     
@@ -91,6 +77,16 @@ function startup(resources) {
         resources.mongodb = {
             client: client
         };
+
+        const simulation =  new Simulation(resources);
+        resources.simulation = simulation;
+
+        simulation.setStepListener(() => {
+            io.emit('step', simulation.state);
+        })
+
+        simulation.start();
+
     }).catch(err => {
         throw err;
     });
