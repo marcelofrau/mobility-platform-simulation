@@ -1,16 +1,16 @@
 const { Car, Coordinate, Customer, RectArea } = require('./model.js');
 
 class SimulationState {
-    constructor(cars, customers, currentArea) {
+    constructor(cars, customers, currentArea, startedAt = new Date(), lastUpdate = new Date(), carPlateCounter = 0, customerCounter = 0, lastTrips = []) {
         this._id = 1;
         this.cars = cars;
         this.customers = customers;
         this.currentArea = currentArea;
-        this.startedAt = new Date();
-        this.lastUpdate = new Date();
-        this.carPlateCounter = 0;
-        this.customerCounter = 0;
-        this.lastTrips = [];
+        this.startedAt = startedAt;
+        this.lastUpdate = lastUpdate;
+        this.carPlateCounter = carPlateCounter;
+        this.customerCounter = customerCounter;
+        this.lastTrips = lastTrips;
     }
 
     toString() {
@@ -18,80 +18,56 @@ class SimulationState {
     }
 }
 
+class SimulationConfig {
+    constructor(carsOnMap, customersOnMap, currentArea, pricePerKM, speed) {
+        this._id = 1;
+        this.carsOnMap = carsOnMap;
+        this.customersOnMap = customersOnMap;
+        this.currentArea = currentArea;
+        this.pricePerKM = pricePerKM;
+        this.speed = speed;
+    }
+
+    toString() {
+        return `SimulationConfig(carsOnMap: ${this.carsOnMap}, customersOnMap: ${this.customersOnMap}, currentArea: ${this.currentArea}, pricePerKM: ${this.pricePerKM}, speed: ${this.speed})`;
+    }
+}
+
 class Simulation {
 
     constructor(resources) {
+        const initialArea = new RectArea(new Coordinate(0, 0), new Coordinate(1000, 500));
+        
         this.resources = resources;
-
         this.timerId = null;
-        this.carPlateCounter = 0;
-        this.customerCounter = 0;
+        this.config = new SimulationConfig(2, 3, initialArea, 1, 2);
 
-        this.db = resources.mongodb.client.db('application');
-
-        this.updateConfig({
-            carsOnMap: 2,
-            customersOnMap: 1,
-            currentArea: new RectArea(new Coordinate(0, 0), new Coordinate(1000, 500)),
-            pricePerKM: 5,
-            speed: 1
-        });
-
-
-
-        this.loadState()
-
+        if (this.isDatabaseAvailable()) {
+            // this.loadState();
+            this.loadConfig();
+        }
     }
-
-    loadState() {
-        const db = this.resources.mongodb.client.db('application');
-        db.collection('simulationState').find().toArray((err, results) => {
-            if (err) {
-                throw err;
-            }
-
-            if (results.length > 0) {
-                const state = results[0];
-
-                // TODO continue loading the state into the current application.
-                // I ran out of time here...
-
-                // this.state = new SimulationState(cars, customers, this.currentArea);
-
-                // this.cars = cars;
-                // this.customers = customers;
-                // this.currentArea = currentArea;
-                // this.startedAt = new Date();
-                // this.lastUpdate = new Date();
-                // this.lastTrips = [];
-
-            }
-
-            console.log(`data loaded: ${results}`)
-        });
-
-    }
-
 
     setStepListener(stepCallback) {
         this.stepCallback = stepCallback;
     }
 
     updateConfig(config) {
-        this.carsOnMap = config.carsOnMap;
-        this.customersOnMap = config.customersOnMap;
-        this.currentArea = config.currentArea;
-        this.pricePerKM = config.pricePerKM;
-        this.speed = config.speed;
+        this.config = new SimulationConfig(config.carsOnMap, config.customersOnMap, config.currentArea, config.pricePerKM, config.speed);
 
+        console.log(`Updated config ${this.config}`);
         this.reload();
+        
+        if (this.isDatabaseAvailable()) {
+            this.saveConfig();
+        }
     }
 
     reload() {
         console.log('Reloading Simulation');
         this.pause();
 
-        if (this.speed != 0) {
+        if (this.config.speed != 0) {
             this.resume();
         }
     }
@@ -130,7 +106,7 @@ class Simulation {
                 this.stepCallback();
             }
 
-        }, 1000 / this.speed);
+        }, 1000 / this.config.speed);
     }
 
     stop() {
@@ -142,7 +118,7 @@ class Simulation {
 
     updateCars() {
         const state = this.state;
-        const carsOnMap = this.carsOnMap;
+        const carsOnMap = this.config.carsOnMap;
         if (carsOnMap != state.cars.length) {
             if (carsOnMap > state.cars.length) {
                 const diff =  carsOnMap - state.cars.length;
@@ -171,7 +147,7 @@ class Simulation {
 
     updateCustomers() {
         const state = this.state;
-        const customersOnMap = this.customersOnMap;
+        const customersOnMap = this.config.customersOnMap;
         if (customersOnMap != state.customers.length) {
             if (customersOnMap > state.customers.length) {
                 const diff =  customersOnMap - state.customers.length;
@@ -289,15 +265,13 @@ class Simulation {
     }
 
     step() {
-        //console.log(`Process each step of simulation ${new Date()} state: ${this.state}`);
+        // console.log(`Process each step of simulation ${new Date()} state: ${this.state}`);
 
         const state = this.state;
-        this.currentArea = state.currentArea;
+        this.config.currentArea = state.currentArea;
 
         this.updateCars();
         this.updateCustomers();
-
-        //const pricePerKM = this.pricePerKM;
 
         const customers = state.customers;
         const cars = state.cars;
@@ -317,30 +291,20 @@ class Simulation {
             if (customer.location == customer.destination) {
                 state.customers.splice(i, 1);
 
-                const price = customer.kmTraveled * this.pricePerKM;
+                const price = customer.kmTraveled * this.config.pricePerKM;
 
                 state.lastTrips.push(`Trip for '${customer.name}' ended (Cost: \$${price})`)
             }
         }
-
-
         state.lastUpdate = new Date();
 
-        this.saveStateOnDb();
-    }
-
-    saveStateOnDb() {
-        const db = this.resources.mongodb.client.db('application');
-        db.collection('simulationState').save(this.state, (err, result) => {
-            if (err) {
-                throw err;
-            }
-        });
+        if (this.isDatabaseAvailable()) {
+            this.saveState();
+        }
     }
 
     reset() {
         console.log('resetting all states');
-
         this.initializeState();
     }
 
@@ -354,32 +318,45 @@ class Simulation {
     }
 
     randomCustomer() {
-        return new Customer(this.getRandomCoordinate(this.currentArea), this.getRandomCoordinate(this.currentArea), `John ${this.customerCounter++}`);
+        return new Customer(this.getRandomCoordinate(this.config.currentArea), this.getRandomCoordinate(this.config.currentArea), `John ${this.state.customerCounter++}`);
     }
 
     randomCar() {
-        return new Car(this.getRandomCoordinate(this.currentArea), null, this.nextCarPlate());
+        return new Car(this.getRandomCoordinate(this.config.currentArea), null, this.nextCarPlate());
     }
 
     nextCarPlate() {
-        return `CAR${this.carPlateCounter++}`
+        return `CAR${this.state.carPlateCounter++}`
     }
 
-    initializeState() {
+    initializeState(overrideState) {
         //read the last state from database
 
-        const cars = [];
-        for (let i = 0; i < this.carsOnMap; i++) {
+        if (overrideState) {
+            this.state = new SimulationState(overrideState.cars, 
+                overrideState.customers, 
+                overrideState.currentArea, 
+                overrideState.startedAt, 
+                overrideState.lastUpdate, 
+                overrideState.carPlateCounter, 
+                overrideState.customerCounter, 
+                overrideState.lastTrips);
+        } else {
+            this.state = new SimulationState([], [], this.config.currentArea);
+        }
+
+        console.log(`initializing state: ${this.state}`);
+
+        const cars = this.state.cars;
+        for (let i = 0; i < this.config.carsOnMap; i++) {
             cars.push(this.randomCar());
         }
-        console.log(`initialized cars: ${cars}`)
 
-        const customers = [];
-        for (let i = 0; i < this.customersOnMap; i++) {
+        const customers = this.state.customers;
+        for (let i = 0; i < this.config.customersOnMap; i++) {
             customers.push(this.randomCustomer());
         }
 
-        this.state = new SimulationState(cars, customers, this.currentArea);
     }
 
     getRandomInt(min, max) {
@@ -396,7 +373,71 @@ class Simulation {
         return new Coordinate(this.getRandomInt(minX, maxX), this.getRandomInt(minY, maxY));
     }
 
+    isDatabaseAvailable() {
+        return this.resources.mongodb && this.resources.mongodb.client
+    }
+
+    saveConfig() {
+        // const db = this.resources.mongodb.client.db('application');
+        // db.collection('config').save(this.config, (err, result) => {
+        //     if (err) {
+        //         console.log(`there was a problem saving config '${this.config}': cause: ${err}`)
+        //         throw err;
+        //     }
+
+        //     console.log(`Configuration persisted. ${this.config}`);
+        // });
+    }
+
+    loadConfig() {
+        // console.log('Loading stored configurations.');
+        // const db = this.resources.mongodb.client.db('application');
+        // db.collection('config').find().toArray((err, results) => {
+        //     if (err) {
+        //         throw err;
+        //     }
+
+        //     if (results.length > 0) {
+        //         const config = results[0];
+
+        //         console.log('Configuration loaded. Updating.');
+        //         this.updateConfig(config);
+        //     }
+        // });
+    }
+
+    saveState() {
+        // const db = this.resources.mongodb.client.db('application');
+        // db.collection('state').save(this.state, (err, result) => {
+        //     if (err) {
+        //         throw err;
+        //     }
+        //     //console.log('Saving state');
+        // });
+    }
+
+    loadState() {
+        
+        // const db = this.resources.mongodb.client.db('application');
+        // db.collection('state').find().toArray((err, results) => {
+        //     if (err) {
+        //         throw err;
+        //     }
+
+        //     if (results.length > 0) {
+        //         const state = results[0];
+        //         console.log('Restoring last persisted state.');
+        //         this.initializeState(state);
+        //     }
+
+        //     console.log(`data loaded: ${results}`)
+        // });
+    
+
+    }
 
 }
+
+
 
 exports.Simulation = Simulation

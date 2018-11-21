@@ -9,8 +9,8 @@ class App extends Component {
         super();
 
         this.state = {
-            activeCars: 0,
-            activeCustomers: 0,
+            carsOnMap: 0,
+            customersOnMap: 0,
             pricePerKM: 0,
             speed: 0,
             simulationState: null
@@ -56,8 +56,8 @@ class App extends Component {
 
     updateAdminConfigs(adminConfiguration) {
         this.setState({
-            activeCars: adminConfiguration.activeCars,
-            activeCustomers: adminConfiguration.activeCustomers,
+            carsOnMap: adminConfiguration.carsOnMap,
+            customersOnMap: adminConfiguration.customersOnMap,
             currentArea: adminConfiguration.currentArea,
             pricePerKM: adminConfiguration.pricePerKM,
             speed: adminConfiguration.speed
@@ -74,8 +74,8 @@ class App extends Component {
         // so the changes will go to the backend and backend
         // will return the new values on the updateAdminConfigs method.
         this.socketConnection.setAdminConfig({
-            activeCars: this.state.activeCars,
-            activeCustomers: this.state.activeCustomers,
+            carsOnMap: this.state.carsOnMap,
+            customersOnMap: this.state.customersOnMap,
             currentArea: this.state.currentArea,
             pricePerKM: this.state.pricePerKM,
             speed: this.state.speed
@@ -200,10 +200,10 @@ class App extends Component {
                     </div>
                     <div className="Config">
                         <div className="form">
-                            <label htmlFor="activeCars">Active Cars</label>
-                            <input type="number" id="activeCars" name="activeCars" value={this.state.activeCars} onChange={this.onChange}/>
-                            <label htmlFor="activeCustomers">Active Customers</label>
-                            <input type="number" id="activeCustomers" name="activeCustomers" value={this.state.activeCustomers} onChange={this.onChange}/>
+                            <label htmlFor="carsOnMap">Active Cars</label>
+                            <input type="number" id="carsOnMap" name="carsOnMap" value={this.state.carsOnMap} onChange={this.onChange}/>
+                            <label htmlFor="customersOnMap">Active Customers</label>
+                            <input type="number" id="customersOnMap" name="customersOnMap" value={this.state.customersOnMap} onChange={this.onChange}/>
                             <label htmlFor="pricePerKM">Price per KM</label>
                             <input type="number" id="pricePerKM" name="pricePerKM" value={this.state.pricePerKM} onChange={this.onChange}/>
                             <label htmlFor="speed">Speed</label>
@@ -211,6 +211,7 @@ class App extends Component {
                         </div>
 
                         {/* TODO: allow change the area here */}
+
                         <div className="buttons">
                             <button onClick={ e => { e.preventDefault(); this.stop(); } }>
                                 <i className="fas fa-stop"></i>
@@ -231,7 +232,7 @@ class App extends Component {
         );
     }
 }
-
+  
 
 
 export default App;

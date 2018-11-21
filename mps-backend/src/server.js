@@ -15,28 +15,11 @@ io.on('connection', (socket) => {
     const simulation = resources.simulation;
 
     socket.on('needConfig', () => {
-        const adminConfiguration = {
-            activeCars: simulation.carsOnMap,
-            activeCustomers: simulation.customersOnMap,
-            currentArea: simulation.currentArea,
-            pricePerKM: simulation.pricePerKM,
-            speed: simulation.speed,
-            isRunning: simulation.isRunning(),
-            isStopped: simulation.isStopped()
-        }
-        socket.emit('configChanged', adminConfiguration);
+        socket.emit('configChanged', simulation.config);
     });
 
     socket.on('updateConfig', (adminConfiguration) => {
-        simulation.updateConfig({
-            carsOnMap: adminConfiguration.activeCars,
-            customersOnMap: adminConfiguration.activeCustomers,
-            pricePerKM: adminConfiguration.pricePerKM,
-            //currentArea: adminConfiguration.currentArea,
-            speed: adminConfiguration.speed,
-            isRunning: simulation.isRunning(),
-            isStopped: simulation.isStopped()
-        });
+        simulation.updateConfig(adminConfiguration);
 
         // this will broadcast to all connections that the configurations was changed
         io.emit('configChanged', adminConfiguration);
@@ -67,6 +50,17 @@ console.log(`Listening on port ${port}`)
 
 console.log('Backend started.')
 
+function startSimulation(resources) {
+    const simulation =  new Simulation(resources);
+
+    resources.simulation = simulation;
+
+    simulation.setStepListener(() => {
+        io.emit('step', simulation.state);
+    })
+
+    simulation.start();
+}
 
 function startup(resources) {
     console.log('Initializing mongodb connection');
@@ -75,24 +69,17 @@ function startup(resources) {
         useNewUrlParser: true
     }).then((client) => {
         console.log('MongoDB loaded.');
+        
         resources.mongodb = {
+            // storing the client of mongodb into resources for later usage.
             client: client
         };
 
-        const simulation =  new Simulation(resources);
-        resources.simulation = simulation;
-
-        simulation.setStepListener(() => {
-            io.emit('step', simulation.state);
-        })
-
-        simulation.start();
-
+        startSimulation(resources);
     }).catch(err => {
-        throw err;
-    });
-}
+        console.log(`Unable to start MongoDB, ignoring data storage. ${err}`);
 
-function isMongoConnected() {
-    return ((resources.mongodb && resources.mongodb.client) && true) || false;
+        resources.mongodb = null;
+        startSimulation(resources);
+    });
 }
