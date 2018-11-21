@@ -15,7 +15,6 @@ io.on('connection', (socket) => {
     const simulation = resources.simulation;
 
     socket.on('needConfig', () => {
-        
         const adminConfiguration = {
             activeCars: simulation.carsOnMap,
             activeCustomers: simulation.customersOnMap,
@@ -34,9 +33,11 @@ io.on('connection', (socket) => {
             customersOnMap: adminConfiguration.activeCustomers,
             pricePerKM: adminConfiguration.pricePerKM,
             //currentArea: adminConfiguration.currentArea,
-            speed: adminConfiguration.speed
+            speed: adminConfiguration.speed,
+            isRunning: simulation.isRunning(),
+            isStopped: simulation.isStopped()
         });
-        
+
         // this will broadcast to all connections that the configurations was changed
         io.emit('configChanged', adminConfiguration);
     })
@@ -56,7 +57,7 @@ io.on('connection', (socket) => {
     socket.on('stop', () => {
         simulation.stop();
     })
-    
+
 });
 
 
@@ -69,7 +70,7 @@ console.log('Backend started.')
 
 function startup(resources) {
     console.log('Initializing mongodb connection');
-    
+
     MongoClient.connect('mongodb://localhost', {
         useNewUrlParser: true
     }).then((client) => {

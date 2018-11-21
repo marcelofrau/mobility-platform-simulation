@@ -13,7 +13,6 @@ class SocketConnection {
 
     getAdminConfig(configCallback) {
         this.socket.on('configChanged', adminConfiguration => {
-            console.log(`configChanged: ${adminConfiguration}`)
             configCallback(adminConfiguration)
         });
         this.socket.emit('needConfig')

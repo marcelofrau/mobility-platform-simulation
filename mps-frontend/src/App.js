@@ -15,7 +15,7 @@ class App extends Component {
             speed: 0,
             simulationState: null
         }
-        
+
         this.onChange = this.onChange.bind(this);
         this.step = this.step.bind(this);
         this.stop = this.stop.bind(this);
@@ -64,7 +64,7 @@ class App extends Component {
         })
     }
 
-    
+
 
     onChange(event) {
         const state = this.state;
@@ -87,10 +87,10 @@ class App extends Component {
 
         if (simState) {
             const area = simState.currentArea;
-            
+
             const minX = Math.min(area.startPoint.x, area.endPoint.x);
             const minY = Math.min(area.startPoint.y, area.endPoint.y);
-    
+
             const maxX = Math.max(area.startPoint.x, area.endPoint.x);
             const maxY = Math.max(area.startPoint.y, area.endPoint.y);
 
@@ -126,7 +126,7 @@ class App extends Component {
                     </div>
                 </div>
             );
-        }) 
+        })
     }
 
     plotCustomers() {
@@ -145,31 +145,31 @@ class App extends Component {
                         top: `${location.y}px`,
                         left: `${location.x}px`,
                     }}>
-                        <div>{customer.name}</div>
                         <i className="fas fa-male fa-2x"></i>
+                        <div className="customerName">{customer.name}</div>
                     </div>
                     <div className="customer" style={{
                         position: "absolute",
                         top: `${destination.y}px`,
                         left: `${destination.x}px`,
                     }}>
-                        <div>{customer.name}</div>
                         <i className="far fa-dot-circle"></i>
+                        <div>{customer.name} Destination</div>
                     </div>
                 </div>
             );
-        }) 
+        })
 
-        
+
     }
 
     lastRides() {
         const trips = this.state.simulationState.lastTrips;
-        
+
         const htmlTrips = [];
 
         for (let i = trips.length - 5; i < trips.length; i++) {
-            htmlTrips.push((<div>{trips[i]}</div>))
+            htmlTrips.push((<div key={i}>{trips[i]}</div>))
         }
 
         return htmlTrips;
@@ -179,7 +179,7 @@ class App extends Component {
         if (!this.state.simulationState) {
             return
         }
-        
+
         return <div className="info">
             <div className="lastUpdate">Updated on: {this.state.simulationState.lastUpdate}</div>
             <div className="lastRides">Last 5 trips summary: {this.lastRides()}</div>
@@ -188,9 +188,9 @@ class App extends Component {
 
     render() {
         const mapStyle = this.getMapStyle();
-        
+
         return (
-            
+
             <div className="App">
                 <form>
                     <div className="Map" style={mapStyle}>
@@ -200,30 +200,30 @@ class App extends Component {
                     </div>
                     <div className="Config">
                         <div className="form">
-                            <div>
-                                <label htmlFor="activeCars">Active Cars</label>
-                                <input type="number" id="activeCars" name="activeCars" value={this.state.activeCars} onChange={this.onChange}/>
-                            </div>
-                            <div>
-                                <label htmlFor="activeCustomers">Active Customers</label>
-                                <input type="number" id="activeCustomers" name="activeCustomers" value={this.state.activeCustomers} onChange={this.onChange}/>
-                            </div>
-                            <div>
-                                <label htmlFor="pricePerKM">Price per KM</label>
-                                <input type="number" id="pricePerKM" name="pricePerKM" value={this.state.pricePerKM} onChange={this.onChange}/>
-                            </div>
-                            <div>
-                                <label htmlFor="speed">Speed</label>
-                                <input type="number" id="speed" name="speed" value={this.state.speed} onChange={this.onChange}/>
-                            </div>
+                            <label htmlFor="activeCars">Active Cars</label>
+                            <input type="number" id="activeCars" name="activeCars" value={this.state.activeCars} onChange={this.onChange}/>
+                            <label htmlFor="activeCustomers">Active Customers</label>
+                            <input type="number" id="activeCustomers" name="activeCustomers" value={this.state.activeCustomers} onChange={this.onChange}/>
+                            <label htmlFor="pricePerKM">Price per KM</label>
+                            <input type="number" id="pricePerKM" name="pricePerKM" value={this.state.pricePerKM} onChange={this.onChange}/>
+                            <label htmlFor="speed">Speed</label>
+                            <input type="number" id="speed" name="speed" value={this.state.speed} onChange={this.onChange}/>
                         </div>
 
                         {/* TODO: allow change the area here */}
                         <div className="buttons">
-                            <input type="button" onClick={ e => { e.preventDefault = true; this.stop(); } } value="stop"/>
-                            <input type="button" onClick={ e => { e.preventDefault = true; this.start(); } } value="start"/>
-                            <input type="button" onClick={ e => { e.preventDefault = true; this.pause(); } } value="pause"/>
-                            <input type="button" onClick={ e => { e.preventDefault = true; this.resume(); } } value="resume"/>
+                            <button onClick={ e => { e.preventDefault(); this.stop(); } }>
+                                <i className="fas fa-stop"></i>
+                            </button>
+                            <button onClick={e => { e.preventDefault(); this.start(); }}>
+                                <i className="fas fa-play"></i>
+                            </button>
+                            <button onClick={e => {e.preventDefault(); this.pause(); }}>
+                                Pause
+                            </button>
+                            <button onClick={e => { e.preventDefault(); this.resume(); }}>
+                                Resume
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -231,7 +231,7 @@ class App extends Component {
         );
     }
 }
-  
-  
+
+
 
 export default App;

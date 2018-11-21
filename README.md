@@ -23,3 +23,4 @@ npm start
 ## References used
 
 - https://medium.com/dailyjs/combining-react-with-socket-io-for-real-time-goodness-d26168429a34
+- https://stackoverflow.com/questions/1934210/finding-a-point-on-a-line#1934226

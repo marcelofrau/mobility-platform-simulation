@@ -38,9 +38,9 @@ class Simulation {
         });
 
 
-        
-        this.loadState() 
-        
+
+        this.loadState()
+
     }
 
     loadState() {
@@ -69,10 +69,10 @@ class Simulation {
 
             console.log(`data loaded: ${results}`)
         });
-        
+
     }
 
-    
+
     setStepListener(stepCallback) {
         this.stepCallback = stepCallback;
     }
@@ -180,7 +180,7 @@ class Simulation {
                 }
             } else {
                 const diff = state.customers.length - customersOnMap;
-                
+
                 let count = 0;
                 for (let i = 0; i < state.customers.length; i++) {
                     const customer = state.customers[i];
@@ -240,37 +240,26 @@ class Simulation {
         const maxY = Math.max(y1, y2);
 
 
-        return ((x > minX && x < maxX) && 
+        return ((x > minX && x < maxX) &&
             (y > minY && y < maxY));
     }
 
     calculateNewCoord(destination, location, amount) {
-        // there is a need to calculate a better way to go to target here
-        // we can make a right-sided triangle here, so
-        // using a calculation on a intersection of a point on the
-        // hypothenuse would make we obtain the correct x, y.
-        const destinationX = destination.x;
-        const destinationY = destination.y;
+        //https://stackoverflow.com/questions/1934210/finding-a-point-on-a-line#1934226
 
-        const locationX = location.x;
-        const locationY = location.y;
+        const x1 = location.x;
+        const y1 = location.y;
 
+        const x2 = destination.x;
+        const y2 = destination.y;
 
-        const newLocation = new Coordinate(locationX, locationY);
-        if (destinationX >= locationX) {
-            newLocation.x += amount;
-        } else {
-            newLocation.x -= amount;
-        }
-        if (destinationY >= locationY) {
-            newLocation.y += amount;
-        } else {
-            newLocation.y -= amount;
-        }
+        const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+        const r = amount / distance;
 
-        
+        const x3 = r * x2 + (1 - r) * x1;
+        const y3 = r * y2 + (1 - r) * y1;
 
-        return newLocation;
+        return new Coordinate(x3, y3);
     }
 
     stepCar(car) {
@@ -286,7 +275,7 @@ class Simulation {
                 car.customer = null;
                 customer.location = destination;
             }
-            
+
             return;
         }
 
@@ -303,18 +292,18 @@ class Simulation {
         //console.log(`Process each step of simulation ${new Date()} state: ${this.state}`);
 
         const state = this.state;
-        this.currentArea = state.currentArea; 
-        
+        this.currentArea = state.currentArea;
+
         this.updateCars();
         this.updateCustomers();
-        
+
         //const pricePerKM = this.pricePerKM;
 
         const customers = state.customers;
         const cars = state.cars;
         const availableCustomers = customers.filter(customer => {return this.findCarByCustomer(customer) == null});
         const availableCars = cars.filter(car => {return car.customer == null});
-        
+
         this.associateCarToWaitingCustomer(availableCustomers, availableCars);
 
         const occupiedCars = cars.filter(car => {return car.customer != null});
@@ -333,8 +322,8 @@ class Simulation {
                 state.lastTrips.push(`Trip for '${customer.name}' ended (Cost: \$${price})`)
             }
         }
-        
-        
+
+
         state.lastUpdate = new Date();
 
         this.saveStateOnDb();
@@ -351,6 +340,8 @@ class Simulation {
 
     reset() {
         console.log('resetting all states');
+
+        this.initializeState();
     }
 
     isRunning() {
@@ -359,7 +350,7 @@ class Simulation {
 
     isStopped() {
         // detect if it is initial state
-        return false;
+        return !this.isRunning && this.state == null;
     }
 
     randomCustomer() {
