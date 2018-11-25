@@ -2,39 +2,18 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
 import App from './App'
-import router from './router'
-import SocketConnection from './socket/SocketConnection'
 
 Vue.config.productionTip = false
 
-const resources = {
-  socket: new SocketConnection()
-}
+import VueSocketIO from 'vue-socket.io'
+
+Vue.use(new VueSocketIO({
+  connection: 'http://localhost:8080'
+}))
 
 /* eslint-disable no-new */
-const vue = new Vue({
-  sockets: {
-    connect: () => {
-      console.log('Socket connected')
-    }
-  },
+new Vue({
   el: '#app',
-  router,
-  components: {
-    App
-  },
+  components: { App },
   template: '<App/>'
-
 })
-
-vue.updateAdminConfigs = () => {
-  console.log('updateAdminConfig')
-}
-vue.step = () => {
-  console.log(`step ${new Date()}`)
-}
-
-console.log(vue.step)
-
-resources.socket.getAdminConfig(vue.updateAdminConfigs)
-resources.socket.setStepCallback(vue.step)

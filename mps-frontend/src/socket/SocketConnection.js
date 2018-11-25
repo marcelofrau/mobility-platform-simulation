@@ -6,7 +6,7 @@ class SocketConnection {
 
         this.socket.on('step', (state) => {
             if (this.stepCallback) {
-                this.stepCallback(state);
+                this.stepCallback(state)
             }
         });
     }
