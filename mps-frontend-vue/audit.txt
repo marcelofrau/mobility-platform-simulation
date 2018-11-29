@@ -1,0 +1,19 @@
+=== npm audit security report ===                        
+                                                                                
+# Run  npm install --save-dev url-loader@1.1.2  to resolve 1 vulnerability
+SEMVER WARNING: Recommended action is a potentially breaking change
+┌───────────────┬──────────────────────────────────────────────────────────────┐
+│ Moderate      │ Regular Expression Denial of Service                         │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ Package       │ mime                                                         │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ Dependency of │ url-loader [dev]                                             │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ Path          │ url-loader > mime                                            │
+├───────────────┼──────────────────────────────────────────────────────────────┤
+│ More info     │ https://nodesecurity.io/advisories/535                       │
+└───────────────┴──────────────────────────────────────────────────────────────┘
+
+
+found 1 moderate severity vulnerability in 11473 scanned packages
+  1 vulnerability requires semver-major dependency updates.
