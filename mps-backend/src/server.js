@@ -10,6 +10,8 @@ console.log('Starting backend.')
 startup(resources);
 
 
+io.origins(['http://localhost:3000', 'http://localhost:8081']);
+
 io.on('connection', (socket) => {
 
     const simulation = resources.simulation;
@@ -69,7 +71,7 @@ function startup(resources) {
         useNewUrlParser: true
     }).then((client) => {
         console.log('MongoDB loaded.');
-        
+
         resources.mongodb = {
             // storing the client of mongodb into resources for later usage.
             client: client
