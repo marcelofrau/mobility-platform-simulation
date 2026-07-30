@@ -1,16 +1,18 @@
-const io = require('socket.io')();
-
 const { MongoClient } = require('mongodb');
+const { Server } = require('socket.io');
 const { Simulation } = require('./simulation.js');
 
 const resources = {};
 const port = 8080;
 
+const io = new Server({
+  cors: {
+    origin: ['http://localhost:3000', 'http://localhost:8081']
+  }
+});
+
 console.log('Starting backend.')
 startup(resources);
-
-
-io.origins(['http://localhost:3000', 'http://localhost:8081']);
 
 io.on('connection', (socket) => {
 
@@ -67,9 +69,7 @@ function startSimulation(resources) {
 function startup(resources) {
     console.log('Initializing mongodb connection');
 
-    MongoClient.connect('mongodb://localhost', {
-        useNewUrlParser: true
-    }).then((client) => {
+    MongoClient.connect('mongodb://localhost').then((client) => {
         console.log('MongoDB loaded.');
 
         resources.mongodb = {

@@ -73,17 +73,17 @@ export default {
   components: {
     HelloWorld
   },
-  sockets: {
-      connect: function () {
-        console.log('socket connected');
-        this.$socket.emit('needConfig')
-      },
-      step: function (state) {
-          this.state = state;
-      },
-      configChanged: function(config) {
-        this.config = config;
-      }
+  mounted() {
+    this.$socket.on('connect', () => {
+      console.log('socket connected');
+      this.$socket.emit('needConfig')
+    });
+    this.$socket.on('step', (state) => {
+      this.state = state;
+    });
+    this.$socket.on('configChanged', (config) => {
+      this.config = config;
+    });
   },
   methods: {
       stop(e) {

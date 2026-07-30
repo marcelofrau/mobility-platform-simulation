@@ -1,0 +1,40 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /mps-backend
+    schedule:
+      interval: weekly
+      day: monday
+    allow:
+      - dependency-type: direct
+    groups:
+      backend:
+        patterns:
+          - "*"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: /mps-frontend
+    schedule:
+      interval: weekly
+      day: monday
+    allow:
+      - dependency-type: direct
+    groups:
+      react-frontend:
+        patterns:
+          - "*"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: /mps-frontend-vue
+    schedule:
+      interval: weekly
+      day: monday
+    allow:
+      - dependency-type: direct
+    groups:
+      vue-frontend:
+        patterns:
+          - "*"
+    open-pull-requests-limit: 5
